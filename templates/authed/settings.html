@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}HaasDradis - Settings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col col-login mx-auto">
+            <div class="text-center mb-6">
+                <img src="" class="h-6" alt="">
+            </div>
+            <form class="card needs-validation" action="/save-settings" method="post" novalidate>
+                {% csrf_token %}
+                <div class="card-body p-6">
+                    <div class="text-center card-title">Settings</div>
+                        {% if success == True %}
+                        <div class="alert alert-success" role="alert">
+                            Connection Success
+                        </div>
+                        {% endif %}
+                        {% if success == False %}
+                        <div class="text-center alert alert-danger" role="alert">
+                            Connection Failed
+                        </div>
+                        {% endif %}
+                    <div class="form-group">
+                        <label class="form-label">Haas Local Api - IP Address</label>
+                        <input id="validationCustom01" name="haasip" value="{{config.haasIp}}"" type="text" class="form-control" placeholder="Ex. 127.0.0.1" required>
+                        <div class="invalid-feedback">
+                            Please specify a ip address
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Haas Local Api - Port Number</label>
+                        <input id="validationCustom02" name="haasport" value={{config.haasPort}} type="number" class="form-control" placeholder="Ex. 8060" required>
+                        <div class="invalid-feedback">
+                            Please specify a port number
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Haas Local Api - Api Secret</label>
+                        <input id="validationCustom03" name="haassecret" value="{{config.haasSecret}}"" type="text" class="form-control" placeholder="Ex. haaslocal" required>
+                        <div class="invalid-feedback">
+                            Please specify a haas secret
+                        </div>
+                    </div>
+                    ------------------
+                    <div class="form-group">
+                        <label class="form-label">Number of Concurrent Tests</label>
+                        <input name="numconcurrenttest" type="number" value={{config.numConcurrentTest}} class="form-control" placeholder="Ex. 2">
+                        <div class="invalid-feedback">
+                            Please specify amount on concurrent task
+                        </div>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary btn-block">Save Settings</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
+</script>
+{% endblock %}

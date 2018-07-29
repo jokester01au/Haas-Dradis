@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load app_filters %}
+
+{% block title %}HaasDradis - Dashboard{% endblock %}
+
+{% block content %}
+
+{% if connectFailure %}
+<div class="my-3 my-md-5">
+    <div class="container">
+        <div class="alert alert-danger text-center" role="alert">
+            Failed to connect to Haasonline Local Api verify settings.
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="my-3 my-md-5">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">
+                Dashboard
+            </h1>
+        </div>
+        <div class="row row-cards">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card p-3">
+                    <div class="d-flex align-items-center">
+                        <span class="stamp stamp-md bg-green mr-3">
+                          <i class="fe fe-dollar-sign"></i>
+                        </span>
+                        <div>
+                            <h4 class="m-0"><a href="javascript:void(0)">{{totalRoi|floatformat:2}}% <small> Bot ROI</small></a></h4>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card p-3">
+                    <div class="d-flex align-items-center">
+                        <span class="stamp stamp-md bg-info mr-3">
+                          <i class="fas fa-chart-line"></i>
+                        </span>
+                        <div>
+                            <h4 class="m-0"><a href="javascript:void(0)">{{totalTradeCount}} <small>Total Trades</small></a></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card p-3">
+                    <div class="d-flex align-items-center">
+                        <span class="stamp stamp-md bg-red mr-3">
+                          <i class="fas fa-robot"></i>
+                        </span>
+                        <div>
+                            <h4 class="m-0"><a href="javascript:void(0)">{{totalActivatedBots}} <small>Active</small></a></h4>
+                            <small class="text-muted">{{totalBotsCount}} Total Bots</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card p-3">
+                    <div class="d-flex align-items-center">
+                        <span class="stamp stamp-md bg-yellow mr-3">
+                          <i class="fas fa-vial"></i>
+                        </span>
+                        <div>
+                            <h4 class="m-0"><a href="javascript:void(0)">132 <small>Total Backtest</small></a></h4>
+                            <small class="text-muted">16 pending</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if amountOfTradeBots > 0 %}
+        <h1 class="page-title">
+            Trade Bots
+        </h1>
+        <div class="row row-cards row-deck">
+            <div class="col-12">
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
+                            <thead>
+                                <tr>
+                                    <th >Botname</th>
+                                    <th class="text-center">Type</th>
+                                    <th class="text-center">Account Name</th>
+                                    <th class="text-center">Exchange</th>
+                                    <th class="text-center">Active</th>
+                                    <th class="text-center">Current Position</th>
+                                    <th class="text-center">Bot ROI</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tradeBot in tradeBots %}
+                                <tr>
+                                    <td>
+                                        <div>{{tradeBot.name}}</div>
+                                        <div class="small text-muted">
+                                            Last Update: {{tradeBot.activatedSince |int_time_to_datetime}}
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        TRADE_BOT
+                                    </td>
+                                    <td class="text-center">
+                                        {{tradeBot.accountId | account_id_to_name}}
+                                    </td>
+                                    <td class="text-center">
+                                       {{tradeBot.priceMarket.priceSource | price_source_num_to_str}}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if tradeBot.activated == True %}
+                                        <i class="fas fa-check" style="color:green"></i>
+                                        {% else %}
+                                        <i class="fas fa-times" style="color:red"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if tradeBot.coinPosition == 0 %}
+                                        <button type="button" class="btn btn-info btn-sm">Bought</button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-danger btn-sm">Sold</button>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if tradeBot.roi >= 0 %}
+                                        <div class="mx-auto chart-circle chart-circle-xs" data-value="1" data-thickness="3" data-color="green">
+                                            <div class="chart-circle-value">{{tradeBot.roi|floatformat:2}}</div>
+                                        </div>
+                                        {% else %}
+                                        <div class="mx-auto chart-circle chart-circle-xs" data-value="1" data-thickness="3" data-color="red">
+                                            <div class="chart-circle-value">{{tradeBot.roi|floatformat:2}}</div>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="item-action dropdown">
+                                            <a href="javascript:void(0)" data-toggle="dropdown" class="icon"><i class="fe fe-more-vertical"></i></a>
+                                            <div class="dropdown-menu dropdown-menu-right">
+                                                {% if tradeBot.activated == True %}
+                                                <a href="/deactivate-trade-bot/{{tradeBot.guid}}" class="dropdown-item"><i class="dropdown-icon fas fa-power-off" style="color:red"></i>Deactivate</a>
+                                                {% else %}
+                                                <a href="/activate-trade-bot/{{tradeBot.guid}}" class="dropdown-item"><i class="dropdown-icon fas fa-power-off" style="color:green"></i>Activate</a>
+                                                {% endif %}
+                                                <a href="" class="dropdown-item"><i class="dropdown-icon fas fa-microchip" style="color:teal"></i>Perform Analysis</a>
+                                                <div class="dropdown-divider"></div>
+                                                <a href="/delete-trade-bot/{{tradeBot.guid}}" class="dropdown-item"><i class="dropdown-icon far fa-trash-alt" style="color:red"></i>Delete Bot</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if amountOfCustomBots > 0 %}
+        <h1 class="page-title">
+            Custom Bots
+        </h1>
+        <div class="row row-cards row-deck">
+            <div class="col-12">
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
+                            <thead>
+                                <tr>
+                                    <th >Botname</th>
+                                    <th class="text-center">Type</th>
+                                    <th class="text-center">Account Name</th>
+                                    <th class="text-center">Exchange</th>
+                                    <th class="text-center">Active</th>
+                                    <th class="text-center">Current Position</th>
+                                    <th class="text-center">Bot ROI</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customBot in customBots %}
+                                <tr>
+                                    <td>
+                                        <div>{{customBot.name}}</div>
+                                        <div class="small text-muted">
+                                            Last Update: {{customBot.lastUpdateTime|int_time_to_datetime}}
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        {{customBot.botType | bot_type_num_to_str}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{customBot.accountId | account_id_to_name}}
+                                    </td>
+                                    <td class="text-center">
+                                       {{customBot.priceMarket.priceSource | price_source_num_to_str}}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if customBot.activated == True %}
+                                        <i class="fas fa-check" style="color:green"></i>
+                                        {% else %}
+                                        <i class="fas fa-times" style="color:red"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if customBot.coinPosition == 0 %}
+                                        <button type="button" class="btn btn-info btn-sm">Bought</button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-danger btn-sm">Sold</button>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if customBot.roi >= 0 %}
+                                        <div class="mx-auto chart-circle chart-circle-xs" data-value="1" data-thickness="3" data-color="green">
+                                            <div class="chart-circle-value">{{customBot.roi|floatformat:2}}</div>
+                                        </div>
+                                        {% else %}
+                                        <div class="mx-auto chart-circle chart-circle-xs" data-value="1" data-thickness="3" data-color="red">
+                                            <div class="chart-circle-value">{{customBot.roi|floatformat:2}}</div>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="item-action dropdown">
+                                            <a href="javascript:void(0)" data-toggle="dropdown" class="icon"><i class="fe fe-more-vertical"></i></a>
+                                            <div class="dropdown-menu dropdown-menu-right">
+                                                {% if customBot.activated == True %}
+                                                <a href="/deactivate-custom-bot/{{customBot.guid}}" class="dropdown-item"><i class="dropdown-icon fas fa-power-off" style="color:red"></i>Deactivate</a>
+                                                {% else %}
+                                                <a href="/activate-custom-bot/{{customBot.guid}}" class="dropdown-item"><i class="dropdown-icon fas fa-power-off" style="color:green"></i>Activate</a>
+                                                {% endif %}
+                                                <a href="" class="dropdown-item"><i class="dropdown-icon fas fa-microchip" style="color:teal"></i>Perform Analysis</a>
+                                                <div class="dropdown-divider"></div>
+                                                <a href="/delete-custom-bot/{{customBot.guid}}" class="dropdown-item"><i class="dropdown-icon far fa-trash-alt" style="color:red"></i>Delete Bot</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if amountOfCustomBots < 0 %}
+        {% if amountOfTradeBots < 0 %}
+        <div class="alert alert-warning text-center" role="alert">
+            No bots currently detected
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+{% if successNotification %}
+    $.bootstrapGrowl("{{successNotification}}", {
+      ele: 'body', // which element to append to
+      type: 'success', // (null, 'info', 'danger', 'success')
+      offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+      align: 'right', // ('left', 'right', or 'center')
+      width: 250, // (integer, or 'auto')
+      delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+      allow_dismiss: true, // If true then will display a cross to close the popup.
+      stackup_spacing: 10 // spacing between consecutively stacked growls.
+    });
+{% endif %}
+
+{% if failureNotification %}
+    $.bootstrapGrowl("{{failureNotification}}", {
+      ele: 'body', // which element to append to
+      type: 'danger', // (null, 'info', 'danger', 'success')
+      offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+      align: 'right', // ('left', 'right', or 'center')
+      width: 250, // (integer, or 'auto')
+      delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+      allow_dismiss: true, // If true then will display a cross to close the popup.
+      stackup_spacing: 10 // spacing between consecutively stacked growls.
+    });
+{% endif %}
+</script>
+{% endblock %}
