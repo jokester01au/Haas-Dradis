@@ -42,3 +42,4 @@ class UtilManager:
             del request.session['failureNotification']
 
         return request
+

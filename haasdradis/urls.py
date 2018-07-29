@@ -33,6 +33,8 @@ startup()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^api/', include('api.urls')),
     url(r'^auth/', include('authentication.urls')),
+    url(r'^analyzer/', include('analyzer.urls')),
     url(r'^', include('dashboard.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

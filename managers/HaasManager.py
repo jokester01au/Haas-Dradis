@@ -36,15 +36,18 @@ class HaasManager:
             return False
 
     @staticmethod
-    def display_accounts():
-        Util.get_logger().info("Please Set One Of the guids in the config file")
+    def get_all_accounts():
+        
+        results = []
+
         accounts = HaasManager.haasomeClient.accountDataApi.get_all_account_details()
 
         if accounts.errorCode == EnumErrorCode.SUCCESS:
             for k,v in accounts.result.items():
-                print(v.name + " - " + v.guid)
+                results.append(v)
+            return results
         else:
-            logging.error("Could not retrieve account information")
+            logging.error(accounts.errorMessage)
 
     @staticmethod
     def check_account_guid(accountguid: str):
@@ -191,7 +194,8 @@ class HaasManager:
             return []
 
     @staticmethod
-    def get_account_info_for_id(accountid: int):
+    def get_account_info_for_id(accountid: str):
+
         accountInfo = HaasManager.haasomeClient.accountDataApi.get_account_details(accountid)
 
         if accountInfo.errorCode == EnumErrorCode.SUCCESS:
@@ -200,3 +204,22 @@ class HaasManager:
             logging.error(accountInfo.errorMessage)
             return []
 
+    @staticmethod
+    def get_all_markets_for_guid(accountguid: str):
+        
+        accountInfo = HaasManager.haasomeClient.accountDataApi.get_account_details(accountguid)
+
+        if accountInfo.errorCode == EnumErrorCode.SUCCESS:
+
+            markets = HaasManager.haasomeClient.marketDataApi.get_price_markets(accountInfo.result.connectedPriceSource)
+
+            if markets.errorCode == EnumErrorCode.SUCCESS:
+
+                return markets.result
+            else:
+                logging.error(markets.errorMessage)
+                
+        else:
+            logging.error(accountInfo.errorMessage)
+
+        return []

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}HaasDradis - Basic Analyzer{% endblock %}
+
+{% block content %}
+{% if history.started == True and history.completed == False %}
+<div class="my-3 my-md-5">
+    <div class="container">
+        <h1 class="text-center">
+            Seeding Market Data Cache
+        </h1>
+        <div class="progress">
+          <div id="historyProgressBar" class="progress-bar bg-info text-center" role="progressbar" style="width: 0%" aria-valuenow="{{history.amountRetrieved}}" aria-valuemin="0" aria-valuemax="{{history.totalToRetrieve}}">{{history.amountRetrieved}}/{{history.totalToRetrieve}}</div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="container">
+    <div class="row">
+        <div class="col col-login mx-auto">
+            <div class="text-center mb-6">
+                <img src="" class="h-6" alt="">
+            </div>
+            <form class="card" action="/analyzer/start-basic" method="post">
+                {% csrf_token %}
+                <div class="card-body p-6">
+                    <div class="text-center card-title">Basic Analyzer Setup</div>
+
+                    <div class="form-group">
+                        <label for="sel1">Account Selection:</label>
+                        <select class="form-control" name="accountselection">
+                            {% for account in accounts %}
+                            <option value="{{account.guid}}">{{account.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sel1">Bot To Use As Base:</label>
+                        <select class="form-control" name="botselection">
+                            {% for tradeBot in tradeBots %}
+                            <option value="TB:{{tradeBot.guid}}">{{tradeBot.name}}</option>
+                            {% endfor %}
+                            {% for customBot in customBots %}
+                            <option value="CB:{{customBot.guid}}">{{customBot.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label >Timeframe To Test In Minutes:</label>
+                        <input name="timeframetotest" value="1440" type="number" class="form-control">
+                        <div class="invalid-feedback">
+                            Please specify a port number
+                        </div>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary btn-block">Start Analysis</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+{% if history.started == True and history.completed == False %}
+
+setInterval(function(){ 
+    var historyApi = "/api/get-history-retrieval-status";
+    $.getJSON(historyApi) .done(function( data ) {
+            $('#historyProgressBar').css('width', data['percentageToShow']+'%').attr('aria-valuenow', data['percentageToShow']);    
+            $('#historyProgressBar').text(data['amountRetrieved']+'/'+data['totalToRetrieve']);
+
+            if(data['amountRetrieved'] == data['totalToRetrieve']) {
+                location.reload();
+            }
+        });
+    }, 1000);
+
+{% endif %}
+</script>
+{% endblock %}

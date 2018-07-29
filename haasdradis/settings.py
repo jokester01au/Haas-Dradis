@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+from huey.contrib.sqlitedb import SqliteHuey
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'huey.contrib.djhuey',
     'authentication',
     'dashboard',
+    'analyzer',
 ]
 
 MIDDLEWARE = [
@@ -103,27 +105,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 HUEY = {
-    'name': os.path.join(BASE_DIR, 'db.sqlite3'),  # Use db name for huey.
+    'name': 'huey.db',  # Use db name for huey.
     'result_store': True,  # Store return values of tasks.
     'events': True,  # Consumer emits events allowing real-time monitoring.
     'store_none': False,  # If a task returns None, do not save to results.
     'always_eager': False,  # If DEBUG=True, run synchronously.
-    'store_errors': True,  # Store error info if task throws exception.
-    'blocking': False,  # Poll the queue rather than do blocking pop.
-    'backend_class': 'huey.RedisHuey',  # Use path to redis huey by default,
-    'connection': {
-        'host': 'localhost',
-        'port': 6379,
-        'db': 0,
-        'connection_pool': None,  # Definitely you should use pooling!
-        # ... tons of other options, see redis-py for details.
-        # huey-specific connection parameters.
-        'read_timeout': 1,  # If not polling (blocking pop), use timeout.
-        'max_errors': 1000,  # Only store the 1000 most recent errors.
-        'url': None,  # Allow Redis config via a DSN.
-    },
+
+    'backend_class':'huey.contrib.sqlitedb.SqliteHuey',
+
     'consumer': {
-        'workers': 8,
+        'workers': 4,
         'worker_type': 'thread',
         'initial_delay': 0.1,  # Smallest polling interval, same as -d.
         'backoff': 1.15,  # Exponential backoff using this rate, -b.
