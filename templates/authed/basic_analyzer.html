@@ -15,7 +15,7 @@
         </div>
     </div>
 </div>
-{% else %}
+{% elif history.started == False and history.completed == False %}
 <div class="container">
     <div class="row">
         <div class="col col-login mx-auto">
@@ -64,7 +64,36 @@
         </div>
     </div>
 </div>
+{% else %}
+
+<div class="my-3 my-md-5">
+    <div class="container">
+        {% if history.completed == True and basicAnalysis.completed == False %}
+        <h1 class="text-center">
+            Basic Analysis Processing
+        </h1>
+
+        <div id="progressBardiv" class="progress">
+          <div id="backtestProgressBar" class="progress-bar bg-info text-center" role="progressbar" style="width: 0%" aria-valuenow="{{basicAnalysis.amountRetrieved}}" aria-valuemin="0" aria-valuemax="{{basicAnalysis.totalToRetrieve}}">{{basicAnalysis.amountRetrieved}}/{{basicAnalysis.totalToRetrieve}}</div>
+        </div>
+        <br />
+
+        {% else %}
+        <h1 class="text-center">
+            Basic Analysis Result <button onclick="location.href= '/analyzer/reset-basic';" class="btn btn-warning float-right" role="button"> Reset </button>
+        </h1>
+        {% endif %}
+
+        <div id="addmehere" class="row">
+
+        </div>
+    </div>
+</div>
+
+
 {% endif %}
+
+
 
 {% endblock %}
 
@@ -73,8 +102,8 @@
 {% if history.started == True and history.completed == False %}
 
 setInterval(function(){ 
-    var historyApi = "/api/get-history-retrieval-status";
-    $.getJSON(historyApi) .done(function( data ) {
+    var historyStatusApi = "/api/get-history-retrieval-status";
+    $.getJSON(historyStatusApi) .done(function( data ) {
             $('#historyProgressBar').css('width', data['percentageToShow']+'%').attr('aria-valuenow', data['percentageToShow']);    
             $('#historyProgressBar').text(data['amountRetrieved']+'/'+data['totalToRetrieve']);
 
@@ -83,6 +112,112 @@ setInterval(function(){
             }
         });
     }, 1000);
+
+{% endif %}
+
+{% if history.completed == True and basicAnalysis.completed == False %}
+
+setInterval(function(){ 
+    var backtestStatusApi = "/api/get-backtest-run-status";
+    $.getJSON(backtestStatusApi) .done(function( data ) {
+        $('#backtestProgressBar').css('width', data['percentageToShow']+'%').attr('aria-valuenow', data['percentageToShow']);    
+        $('#backtestProgressBar').text(data['amountRetrieved']+'/'+data['totalToRetrieve']);
+
+        if(data['amountRetrieved'] == data['totalToRetrieve']) {
+            location.reload();
+        }
+    });
+ }, 1000);
+
+
+setInterval(function(){ 
+    var backtestStatusApi = "/api/get-all-basic-analyzer-results";
+    $.getJSON(backtestStatusApi) .done(function( data ) {
+
+        barResults = $.parseJSON(data.barResults);
+
+        barResults.forEach(function(resultData) {
+
+            if ( $('#botresult-'+ resultData.pk).length == 0) {
+                if (resultData.fields.roi > 0) {
+                    $('#addmehere').append(`<div class='col-md-3 col-xl-3'>
+                      <div id=botresult-`+ resultData.pk + ` class='card'>
+                        <div class='card-status bg-green'></div>
+                        <div class='card-header'>
+                          <h3 class='card-title'>`+resultData.fields.exchangeName+': '+resultData.fields.primaryCurrency+'/'+resultData.fields.secondaryCurrency+`</h3>
+                          <div class='card-options'>
+                            <button class='btn btn-sm btn-primary'>Create Bot</button>
+                          </div>
+                        </div>
+                        <div class='card-body'>`
+                          +'ROI: ' + resultData.fields.roi +  
+                        `</div>
+                      </div>
+                    </div>`);
+                } else {
+                    $('#addmehere').append(`<div class='col-md-3 col-xl-3'>
+                      <div id=botresult-`+ resultData.pk + ` class='card'>
+                        <div class='card-status bg-red'></div>
+                        <div class='card-header'>
+                          <h3 class='card-title'>`+resultData.fields.exchangeName+': '+resultData.fields.primaryCurrency+'/'+resultData.fields.secondaryCurrency+`</h3>
+                          <div class='card-options'>
+                            <button class='btn btn-sm btn-primary'>Create Bot</button>
+                          </div>
+                        </div>
+                        <div class='card-body'>`
+                          +'ROI: ' + resultData.fields.roi +  
+                        `</div>
+                      </div>
+                    </div>`);
+                }
+            }
+        });
+    });
+}, 1000);
+
+{% else %}
+
+$(function(){ 
+    var backtestStatusApi = "/api/get-all-basic-analyzer-results";
+    $.getJSON(backtestStatusApi) .done(function( data ) {
+
+        barResults = $.parseJSON(data.barResults);
+
+        barResults.forEach(function(resultData) {
+            if (resultData.fields.roi > 0) {
+                $('#addmehere').append(`<div class='col-md-3 col-xl-3'>
+                  <div id=botresult-`+ resultData.pk + ` class='card'>
+                    <div class='card-status bg-green'></div>
+                    <div class='card-header'>
+                      <h3 class='card-title'>`+resultData.fields.exchangeName+': '+resultData.fields.primaryCurrency+'/'+resultData.fields.secondaryCurrency+`</h3>
+                      <div class='card-options'>
+                        <button class='btn btn-sm btn-primary'>Create Bot</button>
+                      </div>
+                    </div>
+                    <div class='card-body'>`
+                      +'ROI: ' + resultData.fields.roi +  
+                    `</div>
+                  </div>
+                </div>`);
+            } else {
+                $('#addmehere').append(`<div class='col-md-3 col-xl-3'>
+                  <div id=botresult-`+ resultData.pk + ` class='card'>
+                    <div class='card-status bg-red'></div>
+                    <div class='card-header'>
+                      <h3 class='card-title'>`+resultData.fields.exchangeName+': '+resultData.fields.primaryCurrency+'/'+resultData.fields.secondaryCurrency+`</h3>
+                      <div class='card-options'>
+                        <button class='btn btn-sm btn-primary'>Create Bot</button>
+                      </div>
+                    </div>
+                    <div class='card-body'>`
+                      +'ROI: ' + resultData.fields.roi +  
+                    `</div>
+                  </div>
+                </div>`);
+            }
+        });
+    });
+});
 
 {% endif %}
 </script>

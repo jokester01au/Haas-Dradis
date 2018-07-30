@@ -2,6 +2,7 @@ import logging
 from haasomeapi.HaasomeClient import HaasomeClient
 
 from haasomeapi.enums.EnumErrorCode import EnumErrorCode
+from haasomeapi.enums.EnumCustomBotType import EnumCustomBotType
 
 class HaasManager:
 
@@ -216,6 +217,7 @@ class HaasManager:
             if markets.errorCode == EnumErrorCode.SUCCESS:
 
                 return markets.result
+
             else:
                 logging.error(markets.errorMessage)
                 
@@ -223,3 +225,46 @@ class HaasManager:
             logging.error(accountInfo.errorMessage)
 
         return []
+
+    @staticmethod
+    def backtest_bot_on_market(accountguid: str, botguid: str, timeframeinminutes: int, primarycurrency: str, 
+        secondarycurrency: str, contractname: str):
+
+        backTestResult = HaasManager.haasomeClient.customBotApi.backtest_custom_bot_on_market(accountguid, botguid, timeframeinminutes, primarycurrency, secondarycurrency, contractname)
+
+        if backTestResult.errorCode == EnumErrorCode.SUCCESS:
+
+            return backTestResult.result
+
+        else:
+            logging.error(backTestResult.errorMessage)
+
+        return None
+
+    @staticmethod
+    def get_trade_bot_by_id(botguid: str):
+
+        tradeBot = HaasManager.haasomeClient.tradeBotApi.get_trade_bot(botguid)
+
+        if tradeBot.errorCode == EnumErrorCode.SUCCESS:
+
+            return tradeBot.result
+
+        else:
+            logging.error(tradeBot.errorMessage)
+
+        return None
+
+    @staticmethod
+    def get_custom_bot_by_id(botguid: str):
+
+        customBot = HaasManager.haasomeClient.customBotApi.get_custom_bot(botguid, EnumCustomBotType.BASE_CUSTOM_BOT)
+
+        if customBot.errorCode == EnumErrorCode.SUCCESS:
+
+            return customBot.result
+
+        else:
+            logging.error(customBot.errorMessage)
+
+        return None
